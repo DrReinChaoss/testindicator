@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Trading Bot Chart</title>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+	<h1>Trading Bot Chart</h1>
+	<canvas id="chart"></canvas>
+	<script>
+		// Sample data for the chart
+		var data = {
+			labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
+			datasets: [{
+				label: "BTC Price",
+				data: [10000, 11000, 12000, 10500, 9000, 9500, 10000],
+				borderColor: "rgba(255, 99, 132, 1)",
+				fill: false
+			}]
+		};
+
+		// Options for the chart
+		var options = {
+			responsive: true,
+			title: {
+				display: true,
+				text: "BTC Price Chart"
+			},
+			scales: {
+				xAxes: [{
+					display: true,
+					scaleLabel: {
+						display: true,
+						labelString: "Month"
+					}
+				}],
+				yAxes: [{
+					display: true,
+					scaleLabel: {
+						display: true,
+						labelString: "Price (USD)"
+					}
+				}]
+			}
+		};
+
+		// Get the canvas element and initialize the chart
+		var ctx = document.getElementById("chart").getContext("2d");
+		var chart = new Chart(ctx, {
+			type: "line",
+			data: data,
+			options: options
+		});
+
+		// Sample buy and sell points for the chart
+		var buyPoints = [false, true, false, true, false, false, true];
+		var sellPoints = [false, false, true, false, true, false, false];
+
+		// Display the buy and sell points on the chart
+		for (var i = 0; i < data.labels.length; i++) {
+			if (buyPoints[i]) {
+				chart.config.data.datasets[0].pointBackgroundColor[i] = "green";
+			}
+			if (sellPoints[i]) {
+				chart.config.data.datasets[0].pointBackgroundColor[i] = "red";
+			}
+		}
+
+		// Update the chart with the new data
+		chart.update();
+	</script>
+</body>
+</html>
