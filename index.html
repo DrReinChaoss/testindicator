@@ -1,84 +1,119 @@
 <!DOCTYPE html>
 <html>
-<head>
-	<title>Trading Bot Chart</title>
-	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-</head>
-<body>
-	<h1>Trading Bot Chart</h1>
-	<canvas id="chart"></canvas>
-	<p id="action"></p>
-	<script>
-		// Options for the chart
-		var options = {
-			responsive: true,
-			title: {
-				display: true,
-				text: "BTC Price Chart"
-			},
-			scales: {
-				xAxes: [{
-					display: true,
-					scaleLabel: {
-						display: true,
-						labelString: "Time"
-					}
-				}],
-				yAxes: [{
-					display: true,
-					scaleLabel: {
-						display: true,
-						labelString: "Price (USD)"
-					}
-				}]
-			}
-		};
+  <head>
+    <title>Bitcoin Price Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+      body {
+        background-color: #f7f7f7;
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+      }
+      #chart-container {
+        margin: 30px auto;
+        max-width: 800px;
+      }
+      h1 {
+        margin-top: 30px;
+        margin-bottom: 10px;
+      }
+      #action {
+        font-size: 24px;
+        margin-top: 20px;
+        margin-bottom: 30px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Bitcoin Price Chart</h1>
+    <div id="chart-container">
+      <canvas id="chart"></canvas>
+    </div>
+    <p id="action"></p>
+    <script>
+      // Options for the chart
+      var options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        title: {
+          display: true,
+          text: "BTC Price Chart"
+        },
+        scales: {
+          xAxes: [{
+            type: "time",
+            time: {
+              unit: "minute"
+            },
+            display: true,
+            scaleLabel: {
+              display: true,
+              labelString: "Time"
+            }
+          }],
+          yAxes: [{
+            display: true,
+            scaleLabel: {
+              display: true,
+              labelString: "Price (USD)"
+            }
+          }]
+        },
+        tooltips: {
+          mode: "index",
+          intersect: false
+        }
+      };
 
-		// Initialize the chart
-		var ctx = document.getElementById("chart").getContext("2d");
-		var chart = new Chart(ctx, {
-			type: "line",
-			data: {
-				labels: [],
-				datasets: [{
-					label: "BTC Price",
-					data: [],
-					borderColor: "rgba(255, 99, 132, 1)",
-					fill: false,
-					pointBackgroundColor: []
-				}]
-			},
-			options: options
-		});
+      // Initialize the chart
+      var ctx = document.getElementById("chart").getContext("2d");
+      var chart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [{
+            label: "BTC Price",
+            data: [],
+            borderColor: "rgba(255, 99, 132, 1)",
+            borderWidth: 2,
+            pointRadius: 0,
+            fill: false
+          }]
+        },
+        options: options
+      });
 
-		// Get the price data from an API and update the chart and action
-		function updateData() {
-			$.get("https://api.coindesk.com/v1/bpi/currentprice.json", function(data) {
-				var time = new Date().toLocaleTimeString();
-				var price = parseFloat(data.bpi.USD.rate.replace(",", ""));
-				var buyPoint = price < 55000;
-				var sellPoint = price > 65000;
+      // Get the price data from an API and update the chart and action
+      function updateData() {
+        $.get("https://api.coindesk.com/v1/bpi/currentprice.json", function(data) {
+          var time = new Date();
+          var price = parseFloat(data.bpi.USD.rate.replace(",", ""));
+          var buyPoint = price < 55000;
+          var sellPoint = price > 65000;
 
-				chart.config.data.labels.push(time);
-				chart.config.data.datasets[0].data.push(price);
-				chart.config.data.datasets[0].pointBackgroundColor.push(buyPoint ? "green" : (sellPoint ? "red" : "white"));
-				chart.update();
+          chart.data.labels.push(time);
+          chart.data.datasets[0].data.push(price);
+          chart.data.datasets[0].borderColor.push(buyPoint ? "green" : (sellPoint ? "red" : "rgba(255, 99, 132, 1)"));
+          chart.update();
 
-				var action = "";
-				if (buyPoint) {
-					action = "Buy now!";
-				} else if (sellPoint) {
-					action = "Sell now!";
-				} else {
-					action = "Hold.";
-				}
-				$("#action").text(action);
-			});
-		}
+          var action = "";
+          if (buyPoint) {
+            action = "Buy now!";
+          } else if (sellPoint) {
+            action = "Sell now!";
+          } else {
+            action = "Hold.";
+          }
+          $("#action").text(action);
+        });
+      }
 
-		// Update the data every 10 seconds
-		setInterval(updateData, 10000);
-	</script>
-</body>
+      // Update the data every 10 seconds
+      setInterval(updateData, 10000);
+    </script>
+  </body>
 </html>
+
