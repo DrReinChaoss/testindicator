@@ -3,22 +3,13 @@
 <head>
 	<title>Trading Bot Chart</title>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body>
 	<h1>Trading Bot Chart</h1>
 	<canvas id="chart"></canvas>
+	<p id="action"></p>
 	<script>
-		// Sample data for the chart
-		var data = {
-			labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"],
-			datasets: [{
-				label: "BTC Price",
-				data: [10000, 11000, 12000, 10500, 9000, 9500, 10000],
-				borderColor: "rgba(255, 99, 132, 1)",
-				fill: false
-			}]
-		};
-
 		// Options for the chart
 		var options = {
 			responsive: true,
@@ -31,7 +22,7 @@
 					display: true,
 					scaleLabel: {
 						display: true,
-						labelString: "Month"
+						labelString: "Time"
 					}
 				}],
 				yAxes: [{
@@ -44,30 +35,50 @@
 			}
 		};
 
-		// Get the canvas element and initialize the chart
+		// Initialize the chart
 		var ctx = document.getElementById("chart").getContext("2d");
 		var chart = new Chart(ctx, {
 			type: "line",
-			data: data,
+			data: {
+				labels: [],
+				datasets: [{
+					label: "BTC Price",
+					data: [],
+					borderColor: "rgba(255, 99, 132, 1)",
+					fill: false,
+					pointBackgroundColor: []
+				}]
+			},
 			options: options
 		});
 
-		// Sample buy and sell points for the chart
-		var buyPoints = [false, true, false, true, false, false, true];
-		var sellPoints = [false, false, true, false, true, false, false];
+		// Get the price data from an API and update the chart and action
+		function updateData() {
+			$.get("https://api.coindesk.com/v1/bpi/currentprice.json", function(data) {
+				var time = new Date().toLocaleTimeString();
+				var price = parseFloat(data.bpi.USD.rate.replace(",", ""));
+				var buyPoint = price < 55000;
+				var sellPoint = price > 65000;
 
-		// Display the buy and sell points on the chart
-		for (var i = 0; i < data.labels.length; i++) {
-			if (buyPoints[i]) {
-				chart.config.data.datasets[0].pointBackgroundColor[i] = "green";
-			}
-			if (sellPoints[i]) {
-				chart.config.data.datasets[0].pointBackgroundColor[i] = "red";
-			}
+				chart.config.data.labels.push(time);
+				chart.config.data.datasets[0].data.push(price);
+				chart.config.data.datasets[0].pointBackgroundColor.push(buyPoint ? "green" : (sellPoint ? "red" : "white"));
+				chart.update();
+
+				var action = "";
+				if (buyPoint) {
+					action = "Buy now!";
+				} else if (sellPoint) {
+					action = "Sell now!";
+				} else {
+					action = "Hold.";
+				}
+				$("#action").text(action);
+			});
 		}
 
-		// Update the chart with the new data
-		chart.update();
+		// Update the data every 10 seconds
+		setInterval(updateData, 10000);
 	</script>
 </body>
 </html>
